@@ -47,28 +47,72 @@ interface RouteData {
   duration: number;
 }
 
+const osrmRouteCache = new Map<string, { coordinates: [number, number][]; distance: number; duration: number }>();
+
+function makeOSRMCacheKey(from: [number, number], to: [number, number]): string {
+  return `${from[0]},${from[1]}->${to[0]},${to[1]}`;
+}
+
 async function fetchOSRMRoute(
   from: [number, number],
   to: [number, number],
 ): Promise<{ coordinates: [number, number][]; distance: number; duration: number } | null> {
-  try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (data.code !== 'Ok' || !data.routes?.length) return null;
-    const route = data.routes[0];
-    const coordinates: [number, number][] = route.geometry.coordinates.map(
-      (c: [number, number]) => [c[1], c[0]] as [number, number]
-    );
-    return {
-      coordinates,
-      distance: Math.round(route.distance / 1000),
-      duration: Math.round(route.duration / 60),
-    };
-  } catch {
-    return null;
+  const cacheKey = makeOSRMCacheKey(from, to);
+  const cached = osrmRouteCache.get(cacheKey);
+  if (cached) return cached;
+
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+      const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      if (res.status === 429 || res.status >= 500) {
+        continue;
+      }
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.code !== 'Ok' || !data.routes?.length) return null;
+      const route = data.routes[0];
+      const coordinates: [number, number][] = route.geometry.coordinates.map(
+        (c: [number, number]) => [c[1], c[0]] as [number, number]
+      );
+      const result = {
+        coordinates,
+        distance: Math.round(route.distance / 1000),
+        duration: Math.round(route.duration / 60),
+      };
+      osrmRouteCache.set(cacheKey, result);
+      return result;
+    } catch {
+      if (attempt === maxRetries - 1) return null;
+    }
   }
+  return null;
+}
+
+async function fetchOSRMRoutesThrottled(
+  pairs: { id: string; from: [number, number]; to: [number, number]; color: string }[],
+): Promise<RouteData[]> {
+  const results: RouteData[] = [];
+  const batchSize = 3;
+  for (let i = 0; i < pairs.length; i += batchSize) {
+    const batch = pairs.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(async (pair) => {
+        const route = await fetchOSRMRoute(pair.from, pair.to);
+        if (route) return { id: pair.id, coordinates: route.coordinates, color: pair.color, distance: route.distance, duration: route.duration } as RouteData;
+        return { id: pair.id, coordinates: [pair.from, pair.to], color: pair.color, distance: 0, duration: 0 } as RouteData;
+      })
+    );
+    results.push(...batchResults);
+    if (i + batchSize < pairs.length) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+  return results;
 }
 
 function ZoneDot({ zone }: { zone: DeliveryZone }) {
@@ -123,13 +167,7 @@ export default function AdminMapPage() {
     }
     let cancelled = false;
     setRoutesLoading(true);
-    Promise.all(
-      routePairs.map(async (pair) => {
-        const route = await fetchOSRMRoute(pair.from, pair.to);
-        if (route) return { id: pair.id, coordinates: route.coordinates, color: pair.color, distance: route.distance, duration: route.duration } as RouteData;
-        return { id: pair.id, coordinates: [pair.from, pair.to], color: pair.color, distance: 0, duration: 0 } as RouteData;
-      })
-    ).then((routes) => {
+    fetchOSRMRoutesThrottled(routePairs).then((routes) => {
       if (!cancelled) { setRealRoutes(routes); setRoutesLoading(false); }
     });
     return () => { cancelled = true; };
