@@ -110,32 +110,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [setTrucks, addNotification]);
 
   const addSupply = useCallback((data: { productNumber: string; quantity: number }) => {
-    // Calculate smart distribution across warehouses based on demand
-    const analysis = calculateSmartSupplyDistribution(requests, warehouses);
-    const productAnalysis = analysis.find((a) => a.productNumber === data.productNumber);
-
     let distribution: SupplyDistributionEntry[] = [];
     let remaining = data.quantity;
 
-    if (productAnalysis && productAnalysis.warehouseBreakdown.length > 0) {
-      // Distribute proportionally based on urgencyScore and recommendedQuantity
-      const breakdown = productAnalysis.warehouseBreakdown
-        .filter((wb) => wb.recommendedQuantity > 0 || wb.urgencyScore > 0)
-        .sort((a, b) => b.urgencyScore - a.urgencyScore);
+    try {
+      // Calculate smart distribution across warehouses based on demand
+      const analysis = calculateSmartSupplyDistribution(requests, warehouses);
+      const productAnalysis = analysis.find((a) => a.productNumber === data.productNumber);
 
-      if (breakdown.length > 0) {
-        const totalRecommended = breakdown.reduce((s, wb) => s + Math.max(wb.recommendedQuantity, 1), 0);
+      if (productAnalysis && productAnalysis.warehouseBreakdown.length > 0) {
+        const breakdown = productAnalysis.warehouseBreakdown
+          .filter((wb) => wb.recommendedQuantity > 0 || wb.urgencyScore > 0)
+          .sort((a, b) => b.urgencyScore - a.urgencyScore);
 
-        for (const wb of breakdown) {
-          if (remaining <= 0) break;
-          const share = Math.ceil((Math.max(wb.recommendedQuantity, 1) / totalRecommended) * data.quantity);
-          const qty = Math.min(share, remaining);
-          if (qty > 0) {
-            distribution.push({ warehouseId: wb.warehouseId, warehouseName: wb.warehouseName, quantity: qty });
-            remaining -= qty;
+        if (breakdown.length > 0) {
+          const totalRecommended = breakdown.reduce((s, wb) => s + Math.max(wb.recommendedQuantity, 1), 0);
+
+          for (const wb of breakdown) {
+            if (remaining <= 0) break;
+            const share = Math.ceil((Math.max(wb.recommendedQuantity, 1) / totalRecommended) * data.quantity);
+            const qty = Math.min(share, remaining);
+            if (qty > 0) {
+              distribution.push({ warehouseId: wb.warehouseId, warehouseName: wb.warehouseName, quantity: qty });
+              remaining -= qty;
+            }
           }
         }
       }
+    } catch {
+      // fallback to even distribution below
     }
 
     // If no smart distribution or remaining qty, spread evenly across all warehouses
