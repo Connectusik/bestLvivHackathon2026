@@ -8,10 +8,7 @@ const PRIORITY_WEIGHTS: Record<Priority, number> = {
   normal: 25,
 };
 
-/**
- * Calculate distance between two geographic points using the Haversine formula.
- * Returns distance in kilometers.
- */
+// Haversine — відстань між двома точками (км)
 export function haversineDistance(
   lat1: number, lon1: number,
   lat2: number, lon2: number
@@ -28,10 +25,7 @@ export function haversineDistance(
   return R * c;
 }
 
-/**
- * Find the nearest warehouses that have the requested product in stock.
- * Returns warehouses sorted by distance with available quantity info.
- */
+// Найближчі склади з потрібним товаром
 export function findNearestStock(
   lat: number,
   lon: number,
@@ -50,15 +44,7 @@ export function findNearestStock(
     .sort((a, b) => a.distance - b.distance);
 }
 
-/**
- * Core distribution algorithm.
- * For each pending request, calculates the optimal source warehouse based on:
- * - Priority weight (urgent > critical > elevated > normal)
- * - Distance (closer = better)
- * - Available stock (must have enough)
- *
- * Score = priorityWeight * (1 / (1 + distance/100)) * stockAvailabilityFactor
- */
+// Розподіл заявок по складах: пріоритет × відстань × наявність
 export function calculateDistributionPlan(
   requests: DeliveryRequest[],
   warehouses: Warehouse[]
@@ -68,7 +54,6 @@ export function calculateDistributionPlan(
     .sort((a, b) => PRIORITY_WEIGHTS[b.priority] - PRIORITY_WEIGHTS[a.priority]);
 
   const plans: DistributionPlan[] = [];
-  // Track allocated stock per warehouse-product pair during planning
   const allocated = new Map<string, number>();
 
   for (const request of pendingRequests) {
@@ -120,11 +105,7 @@ export function calculateDistributionPlan(
   return plans;
 }
 
-/**
- * Recalculate supply volumes based on current demand.
- * Analyzes all pending requests and compares against available stock
- * to determine which products need resupply and how much.
- */
+// Прогноз потреб: попит vs залишки
 export function calculateDemandForecast(
   requests: DeliveryRequest[],
   warehouses: Warehouse[]
@@ -132,7 +113,6 @@ export function calculateDemandForecast(
   const productDemand = new Map<string, number>();
   const pendingByProduct = new Map<string, number>();
 
-  // Sum up demand from pending/approved requests
   for (const req of requests) {
     if (req.status === 'pending' || req.status === 'approved') {
       const current = productDemand.get(req.productNumber) ?? 0;
@@ -141,7 +121,6 @@ export function calculateDemandForecast(
     }
   }
 
-  // Calculate total available stock per product across all warehouses
   const totalStock = new Map<string, number>();
   for (const wh of warehouses) {
     for (const p of wh.products) {
@@ -163,7 +142,6 @@ export function calculateDemandForecast(
     else if (ratio > 0.5) demandLevel = 'elevated';
     else if (ratio > 0.3) demandLevel = 'elevated';
 
-    // If there are urgent requests for this product, escalate
     const hasUrgent = requests.some(
       (r) => r.productNumber === pn && r.priority === 'urgent' && r.status === 'pending'
     );
@@ -183,11 +161,7 @@ export function calculateDemandForecast(
   return forecasts.sort((a, b) => PRIORITY_WEIGHTS[b.demandLevel] - PRIORITY_WEIGHTS[a.demandLevel]);
 }
 
-/**
- * Calculate suggested inter-warehouse transfers to balance stock.
- * Identifies warehouses with surplus and those with deficit,
- * then suggests transfers to balance resources.
- */
+// Ребалансування: трансфери між складами для вирівнювання запасів
 export function calculateRebalancingPlan(
   warehouses: Warehouse[]
 ): Array<{
@@ -211,7 +185,6 @@ export function calculateRebalancingPlan(
     reason: string;
   }> = [];
 
-  // Get all unique product numbers
   const allProducts = new Set<string>();
   for (const wh of warehouses) {
     for (const p of wh.products) {
@@ -230,12 +203,10 @@ export function calculateRebalancingPlan(
       };
     });
 
-    // Find warehouses below threshold
     const deficitWarehouses = whStocks.filter(
       (ws) => ws.minThreshold > 0 && ws.quantity < ws.minThreshold
     );
 
-    // Find warehouses with surplus (more than 2x threshold)
     const surplusWarehouses = whStocks.filter(
       (ws) => ws.minThreshold > 0 && ws.quantity > ws.minThreshold * 2
     );
@@ -271,19 +242,7 @@ const PRIORITY_URGENCY: Record<Priority, number> = {
   normal: 1.0,
 };
 
-/**
- * Smart supply distribution based on last week's order analysis.
- *
- * Formula per product per warehouse:
- *
- *   regionalDemand_7d = Σ quantity of orders closest to this warehouse (last 7 days)
- *   dailyRate = regionalDemand_7d / 7
- *   trendFactor = clamp( (demand_last_3d / 3) / (demand_prev_4d / 4), 0.5, 2.0 )
- *   priorityMultiplier = weighted average of order priorities
- *   safetyStock = max(minThreshold, dailyRate * 3)
- *   projectedWeeklyNeed = dailyRate * 7 * trendFactor * priorityMultiplier
- *   recommended = max(0, projectedWeeklyNeed + safetyStock - currentStock)
- */
+// Розумний розподіл постачання на основі аналізу замовлень за тиждень
 export function calculateSmartSupplyDistribution(
   requests: DeliveryRequest[],
   warehouses: Warehouse[],
@@ -293,13 +252,11 @@ export function calculateSmartSupplyDistribution(
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
 
-  // All orders from the last 7 days regardless of status
   const recentRequests = requests.filter((r) => {
     const created = new Date(r.createdAt);
     return created >= weekAgo && created <= now;
   });
 
-  // Assign each request to the nearest warehouse (regional demand)
   const warehouseRequests = new Map<string, Map<string, DeliveryRequest[]>>();
   for (const wh of warehouses) {
     warehouseRequests.set(wh.id, new Map());
@@ -321,7 +278,6 @@ export function calculateSmartSupplyDistribution(
     whMap.set(req.productNumber, list);
   }
 
-  // Collect all product numbers
   const allProducts = new Set<string>();
   for (const wh of warehouses) {
     for (const p of wh.products) allProducts.add(p.productNumber);
@@ -359,7 +315,6 @@ export function calculateSmartSupplyDistribution(
       );
     }
 
-    // Total stock
     const totalStock = warehouses.reduce((sum, wh) => {
       const p = wh.products.find((pr) => pr.productNumber === pn);
       return sum + (p?.quantity ?? 0);
@@ -367,7 +322,6 @@ export function calculateSmartSupplyDistribution(
 
     const stockCoverageDays = dailyRate > 0 ? totalStock / dailyRate : Infinity;
 
-    // Per-warehouse breakdown
     const warehouseBreakdown: WarehouseSupplyRecommendation[] = [];
     let totalRecommended = 0;
 
@@ -378,10 +332,8 @@ export function calculateSmartSupplyDistribution(
       const currentStock = product?.quantity ?? 0;
       const minThreshold = product?.minThreshold ?? 0;
 
-      // Regional daily rate
       const regionalDailyRate = regionalDemand / 7;
 
-      // Regional trend
       const regLast3 = whProductReqs
         .filter((r) => new Date(r.createdAt) >= threeDaysAgo)
         .reduce((s, r) => s + r.quantity, 0);
@@ -390,7 +342,6 @@ export function calculateSmartSupplyDistribution(
         ? Math.min(Math.max((regLast3 / 3) / (regPrev4 / 4), 0.5), 2.0)
         : (regLast3 > 0 ? 2.0 : 1.0);
 
-      // Regional priority multiplier
       let regPM = 1.0;
       if (whProductReqs.length > 0) {
         const regTotalQty = whProductReqs.reduce((s, r) => s + r.quantity, 0);
@@ -400,16 +351,12 @@ export function calculateSmartSupplyDistribution(
         );
       }
 
-      // Safety stock: at least minThreshold, or 3 days of demand
       const safetyStock = Math.max(minThreshold, Math.ceil(regionalDailyRate * 3));
 
-      // Projected weekly need for this warehouse
       const projectedNeed = Math.ceil(regionalDailyRate * 7 * regTrend * regPM);
 
-      // Recommended = projected need + safety buffer - current stock
       const recommended = Math.max(0, projectedNeed + safetyStock - currentStock);
 
-      // Urgency score (0-100): higher = more urgent to supply
       const coverageDays = regionalDailyRate > 0 ? currentStock / regionalDailyRate : 999;
       const urgencyScore = Math.min(100, Math.round(
         (coverageDays < 3 ? 80 : coverageDays < 7 ? 50 : 20) *
@@ -428,13 +375,11 @@ export function calculateSmartSupplyDistribution(
       });
     }
 
-    // Demand level based on stock coverage and trend
     let demandLevel: Priority = 'normal';
     if (stockCoverageDays < 3 || trendFactor > 1.5) demandLevel = 'urgent';
     else if (stockCoverageDays < 7 || trendFactor > 1.2) demandLevel = 'critical';
     else if (stockCoverageDays < 14 || trendFactor > 1.0) demandLevel = 'elevated';
 
-    // If any urgent request exists in last 7 days, escalate
     if (productRequests.some((r) => r.priority === 'urgent')) {
       if (demandLevel === 'normal') demandLevel = 'elevated';
       if (demandLevel === 'elevated' && trendFactor > 1.0) demandLevel = 'critical';
@@ -459,11 +404,8 @@ export function calculateSmartSupplyDistribution(
   return analyses.sort((a, b) => PRIORITY_WEIGHTS[b.demandLevel] - PRIORITY_WEIGHTS[a.demandLevel]);
 }
 
-// ─── Delivery Zones ─────────────────────────────────────────────────────────
-
-const GREEN_ZONE_RADIUS = 150; // km — fast, cheap delivery
-const YELLOW_ZONE_RADIUS = 350; // km — acceptable delivery
-// beyond 350 km = red zone — expensive, slow
+const GREEN_ZONE_RADIUS = 150;
+const YELLOW_ZONE_RADIUS = 350;
 
 const ZONE_COST_MULTIPLIER: Record<DeliveryZone, number> = {
   green: 1.0,
@@ -519,23 +461,7 @@ function estimateDeliveryCost(distance: number, quantity: number, zone: Delivery
   return distance * quantity * BASE_COST_PER_KM * ZONE_COST_MULTIPLIER[zone];
 }
 
-/**
- * Advanced distribution algorithm with delivery zones and split delivery support.
- *
- * For each pending request:
- * 1. Evaluate all warehouses and their delivery zones
- * 2. Try single-warehouse delivery first (prefer green zone)
- * 3. If no single warehouse can fulfill — build split delivery plan
- * 4. Compare single vs split delivery cost and pick the cheaper option
- * 5. For split delivery: minimize total cost = Σ(distance × qty × zone_multiplier) + split_penalty
- *
- * Score formula per warehouse:
- *   score = priorityWeight × zoneBonus × (1 / (1 + distance/200)) × stockFactor × freshnessFactor
- *
- * Split delivery is chosen when:
- *   - No single warehouse has enough stock, OR
- *   - Split from 2 green-zone warehouses is cheaper than 1 yellow/red-zone warehouse
- */
+// Розподіл з урахуванням зон доставки та можливості split-доставки
 export function calculateAdvancedDistributionPlan(
   requests: DeliveryRequest[],
   warehouses: Warehouse[]
@@ -723,9 +649,7 @@ export function calculateAdvancedDistributionPlan(
   return plans;
 }
 
-/**
- * Get delivery zones for all warehouses relative to a point.
- */
+// Зони доставки всіх складів відносно точки
 export function getWarehouseZones(
   lat: number,
   lon: number,
