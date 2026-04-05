@@ -6,6 +6,36 @@ import { productCatalog } from '../data/mockData';
 const HEADER_FILL: [number, number, number] = [41, 128, 185];
 const ALT_ROW_FILL: [number, number, number] = [240, 248, 255];
 
+// ---------------------------------------------------------------------------
+// Cyrillic font support — fetch Roboto from Google Fonts and cache it
+// ---------------------------------------------------------------------------
+let cachedFontBase64: string | null = null;
+
+async function fetchRobotoBase64(): Promise<string> {
+  if (cachedFontBase64) return cachedFontBase64;
+  const res = await fetch(
+    'https://fonts.gstatic.com/s/roboto/v47/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbGmT.ttf',
+  );
+  const buf = await res.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  cachedFontBase64 = btoa(binary);
+  return cachedFontBase64;
+}
+
+async function createPdf(orientation: 'landscape' | 'portrait' = 'landscape'): Promise<jsPDF> {
+  const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
+  const fontBase64 = await fetchRobotoBase64();
+  doc.addFileToVFS('Roboto-Regular.ttf', fontBase64);
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'bold');
+  doc.setFont('Roboto');
+  return doc;
+}
+
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString('uk-UA', {
@@ -87,19 +117,19 @@ function addFooter(doc: jsPDF): void {
 // ---------------------------------------------------------------------------
 // 1. Single delivery manifest
 // ---------------------------------------------------------------------------
-export function exportDeliveryManifest(
+export async function exportDeliveryManifest(
   request: DeliveryRequest,
   warehouse: Warehouse | undefined,
-): void {
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+): Promise<void> {
+  const doc = await createPdf('landscape');
 
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('Roboto', 'bold');
   doc.setFontSize(18);
   doc.text('DELIVERY MANIFEST', doc.internal.pageSize.getWidth() / 2, 20, {
     align: 'center',
   });
 
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('Roboto', 'normal');
   doc.setFontSize(11);
   doc.text(`Document #: ${request.id}`, 14, 32);
   doc.text(`Date: ${formatDate(request.createdAt)}`, 14, 38);
@@ -119,7 +149,7 @@ export function exportDeliveryManifest(
     ],
     headStyles: { fillColor: HEADER_FILL, textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: ALT_ROW_FILL },
-    styles: { fontSize: 10, cellPadding: 4 },
+    styles: { fontSize: 10, cellPadding: 4, font: 'Roboto' },
     columnStyles: {
       0: { cellWidth: 60 },
       1: { cellWidth: 25, halign: 'center' },
@@ -134,10 +164,10 @@ export function exportDeliveryManifest(
   const finalY: number = (doc as any).lastAutoTable?.finalY ?? 80;
   const warehouseY = finalY + 12;
 
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('Roboto', 'bold');
   doc.setFontSize(12);
   doc.text('Warehouse Information', 14, warehouseY);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('Roboto', 'normal');
   doc.setFontSize(10);
 
   if (warehouse) {
@@ -154,20 +184,20 @@ export function exportDeliveryManifest(
 // ---------------------------------------------------------------------------
 // 2. Distribution plan report
 // ---------------------------------------------------------------------------
-export function exportDistributionReport(
+export async function exportDistributionReport(
   plans: AdvancedDistributionPlan[],
   warehouses: Warehouse[],
-): void {
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+): Promise<void> {
+  const doc = await createPdf('landscape');
 
   // Title
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('Roboto', 'bold');
   doc.setFontSize(18);
   doc.text('DISTRIBUTION REPORT', doc.internal.pageSize.getWidth() / 2, 20, {
     align: 'center',
   });
 
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('Roboto', 'normal');
   doc.setFontSize(11);
   doc.text(`Date: ${nowStamp()}`, 14, 30);
 
@@ -232,7 +262,7 @@ export function exportDistributionReport(
     body,
     headStyles: { fillColor: HEADER_FILL, textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: ALT_ROW_FILL },
-    styles: { fontSize: 9, cellPadding: 3 },
+    styles: { fontSize: 9, cellPadding: 3, font: 'Roboto' },
     columnStyles: {
       0: { cellWidth: 35 },
       1: { cellWidth: 55 },
@@ -251,20 +281,20 @@ export function exportDistributionReport(
 // ---------------------------------------------------------------------------
 // 3. Full requests list report
 // ---------------------------------------------------------------------------
-export function exportRequestsReport(
+export async function exportRequestsReport(
   requests: DeliveryRequest[],
   warehouses: Warehouse[],
-): void {
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+): Promise<void> {
+  const doc = await createPdf('landscape');
 
   // Title
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('Roboto', 'bold');
   doc.setFontSize(18);
   doc.text('DELIVERY REQUESTS REGISTER', doc.internal.pageSize.getWidth() / 2, 20, {
     align: 'center',
   });
 
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('Roboto', 'normal');
   doc.setFontSize(11);
 
   // Date range
@@ -316,7 +346,7 @@ export function exportRequestsReport(
     body,
     headStyles: { fillColor: HEADER_FILL, textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: ALT_ROW_FILL },
-    styles: { fontSize: 8, cellPadding: 3 },
+    styles: { fontSize: 8, cellPadding: 3, font: 'Roboto' },
     columnStyles: {
       0: { cellWidth: 30 },
       1: { cellWidth: 45 },
