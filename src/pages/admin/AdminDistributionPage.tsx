@@ -110,7 +110,7 @@ export default function AdminDistributionPage() {
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="stock" name="Поточний запас" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="stock" name="Поточний запас" fill="#3191a5" radius={[4, 4, 0, 0]} />
               <Bar dataKey="weeklyDemand" name="Попит за тиждень" radius={[4, 4, 0, 0]}>
                 {chartData.map((entry) => (
                   <Cell
@@ -119,7 +119,7 @@ export default function AdminDistributionPage() {
                   />
                 ))}
               </Bar>
-              <Bar dataKey="recommended" name="Рекомендовано замовити" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="recommended" name="Рекомендовано замовити" fill="#5bc5d9" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -285,10 +285,10 @@ export default function AdminDistributionPage() {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Legend />
-                    <Area type="monotone" dataKey="high" stackId="confidence" stroke="none" fill="#c7d2fe" name="Верхня межа" />
+                    <Area type="monotone" dataKey="high" stackId="confidence" stroke="none" fill="#b7e3ee" name="Верхня межа" />
                     <Area type="monotone" dataKey="low" stackId="confidence2" stroke="none" fill="transparent" name="Нижня межа" />
-                    <Line type="monotone" dataKey="actual" stroke="#6366f1" strokeWidth={2} name="Факт" dot={{ r: 3 }} connectNulls={false} />
-                    <Line type="monotone" dataKey="forecast" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 3" name="Прогноз" dot={{ r: 3 }} connectNulls={false} />
+                    <Line type="monotone" dataKey="actual" stroke="#3191a5" strokeWidth={2} name="Факт" dot={{ r: 3 }} connectNulls={false} />
+                    <Line type="monotone" dataKey="forecast" stroke="#f1a92e" strokeWidth={2} strokeDasharray="6 3" name="Прогноз" dot={{ r: 3 }} connectNulls={false} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>

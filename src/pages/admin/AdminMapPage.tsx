@@ -174,7 +174,7 @@ export default function AdminMapPage() {
     .map((r) => {
       const wh = warehouses.find((w) => w.id === r.assignedWarehouseId);
       if (!wh) return null;
-      const color = r.status === 'in_transit' ? '#3b82f6' : r.priority === 'urgent' ? '#ef4444' : '#6366f1';
+      const color = r.status === 'in_transit' ? '#3b82f6' : r.priority === 'urgent' ? '#ef4444' : '#3191a5';
       return { id: r.id, from: [wh.latitude, wh.longitude] as [number, number], to: [r.latitude, r.longitude] as [number, number], color };
     })
     .filter(Boolean) as { id: string; from: [number, number]; to: [number, number]; color: string }[];

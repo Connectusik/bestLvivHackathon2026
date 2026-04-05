@@ -62,7 +62,7 @@ export default function LoginPage() {
   const isWorker = selectedUser?.role === 'worker';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-indigo-50 dark:bg-gray-900 flex flex-col items-center justify-center px-4">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50">
           <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
