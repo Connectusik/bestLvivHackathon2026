@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/bestLvivHackathon2026/',
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
@@ -29,7 +30,7 @@ export default defineConfig({
         theme_color: '#4f46e5',
         background_color: '#f9fafb',
         display: 'standalone',
-        start_url: '/',
+        start_url: '/bestLvivHackathon2026/',
         icons: [
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
