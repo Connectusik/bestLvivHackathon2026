@@ -79,11 +79,14 @@ export default function AdminStatisticsPage() {
     });
   }, [requests]);
 
-  const supplyStatusData = [
-    { name: 'Очікує', value: supplies.filter((s) => s.status === 'pending').length },
-    { name: 'В дорозі', value: supplies.filter((s) => s.status === 'in_transit').length },
-    { name: 'Доставлено', value: supplies.filter((s) => s.status === 'delivered').length },
-  ].filter((d) => d.value > 0);
+  // Aggregate total supplied quantity per warehouse
+  const supplyByWarehouse: Record<string, number> = {};
+  for (const s of supplies) {
+    for (const d of s.distribution) {
+      supplyByWarehouse[d.warehouseName] = (supplyByWarehouse[d.warehouseName] ?? 0) + d.quantity;
+    }
+  }
+  const supplyDistributionData = Object.entries(supplyByWarehouse).map(([name, value]) => ({ name, value }));
 
   return (
     <div className="space-y-6">
@@ -164,11 +167,11 @@ export default function AdminStatisticsPage() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Стан постачання">
+        <ChartCard title="Розподіл постачань по складах">
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={supplyStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                {supplyStatusData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              <Pie data={supplyDistributionData} cx="50%" cy="50%" innerRadius={50} outerRadius={90} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                {supplyDistributionData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip />
             </PieChart>

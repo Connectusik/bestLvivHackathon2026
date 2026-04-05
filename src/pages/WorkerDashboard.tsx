@@ -16,8 +16,17 @@ const supplyColumns: Column<Supply>[] = [
   { key: 'id', header: 'ID', render: (s) => <span className="font-mono text-xs">{s.id}</span> },
   { key: 'product', header: 'Товар', render: (s) => s.productNumber },
   { key: 'qty', header: 'К-сть', render: (s) => s.quantity },
+  { key: 'distribution', header: 'Розподіл', render: (s) => (
+    <div className="space-y-0.5">
+      {s.distribution.map((d) => (
+        <div key={d.warehouseId} className="text-xs">
+          <span className="text-gray-600 dark:text-gray-400">{d.warehouseName}</span>{' '}
+          <span className="font-medium text-indigo-600 dark:text-indigo-400">×{d.quantity}</span>
+        </div>
+      ))}
+    </div>
+  ) },
   { key: 'date', header: 'Дата', render: (s) => new Date(s.createdAt).toLocaleDateString('uk-UA') },
-  { key: 'status', header: 'Статус', render: (s) => <StatusBadge status={s.status} /> },
 ];
 
 const shipmentColumns: Column<Shipment>[] = [
@@ -26,7 +35,6 @@ const shipmentColumns: Column<Shipment>[] = [
   { key: 'qty', header: 'К-сть', render: (s) => s.quantity },
   { key: 'dest', header: 'Призначення', render: (s) => s.destinationLabel },
   { key: 'date', header: 'Дата', render: (s) => new Date(s.createdAt).toLocaleDateString('uk-UA') },
-  { key: 'status', header: 'Статус', render: (s) => <StatusBadge status={s.status} /> },
 ];
 
 const truckColumns: Column<Truck>[] = [
@@ -54,10 +62,11 @@ export default function WorkerDashboard() {
   const assignedWarehouse = warehouses.find((w) => w.id === user?.warehouseId) ?? warehouses[0];
 
   const warehouseTrucks = trucks.filter((t) => t.warehouseId === assignedWarehouse.id);
-  const currentSupplies = supplies.filter((s) => s.status === 'in_transit' && s.destinationWarehouseId === assignedWarehouse.id);
-  const upcomingSupplies = supplies.filter((s) => s.status === 'pending' && s.destinationWarehouseId === assignedWarehouse.id);
-  const currentShipments = shipments.filter((s) => s.status === 'in_transit' && s.sourceWarehouseId === assignedWarehouse.id);
-  const upcomingShipments = shipments.filter((s) => s.status === 'pending' && s.sourceWarehouseId === assignedWarehouse.id);
+  // Show supplies that have distribution entries for this warehouse
+  const warehouseSupplies = supplies.filter((s) =>
+    s.distribution.some((d) => d.warehouseId === assignedWarehouse.id)
+  );
+  const warehouseShipments = shipments.filter((s) => s.sourceWarehouseId === assignedWarehouse.id);
 
   const warehouseRequests = requests.filter(
     (r) => r.assignedWarehouseId === assignedWarehouse.id && r.status !== 'delivered' && r.status !== 'rejected'
@@ -211,17 +220,11 @@ export default function WorkerDashboard() {
 
         {/* Supplies & Shipments */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Section title="Поточні поставки" subtitle="В дорозі на цей склад">
-            <DataTable columns={supplyColumns} data={currentSupplies} keyExtractor={(s) => s.id} emptyMessage="Немає поточних поставок" />
+          <Section title="Постачання на склад" subtitle="Товари, розподілені на цей склад">
+            <DataTable columns={supplyColumns} data={warehouseSupplies} keyExtractor={(s) => s.id} emptyMessage="Немає постачань" />
           </Section>
-          <Section title="Поточні відправки" subtitle="Вихідні відправки в дорозі">
-            <DataTable columns={shipmentColumns} data={currentShipments} keyExtractor={(s) => s.id} emptyMessage="Немає поточних відправок" />
-          </Section>
-          <Section title="Очікувані поставки" subtitle="Заплановані поставки">
-            <DataTable columns={supplyColumns} data={upcomingSupplies} keyExtractor={(s) => s.id} emptyMessage="Немає запланованих поставок" />
-          </Section>
-          <Section title="Заплановані відправки" subtitle="Очікують відправки">
-            <DataTable columns={shipmentColumns} data={upcomingShipments} keyExtractor={(s) => s.id} emptyMessage="Немає запланованих відправок" />
+          <Section title="Відправки зі складу" subtitle="Міжскладські переміщення">
+            <DataTable columns={shipmentColumns} data={warehouseShipments} keyExtractor={(s) => s.id} emptyMessage="Немає відправок" />
           </Section>
         </div>
 
