@@ -61,11 +61,11 @@ async function fetchOSRMRoute(
   const cached = osrmRouteCache.get(cacheKey);
   if (cached) return cached;
 
-  const maxRetries = 3;
+  const maxRetries = 5;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       if (attempt > 0) {
-        await new Promise((r) => setTimeout(r, 500 * attempt));
+        await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt - 1)));
       }
       const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
       const res = await fetch(url);
@@ -97,21 +97,40 @@ async function fetchOSRMRoutesThrottled(
   pairs: { id: string; from: [number, number]; to: [number, number]; color: string }[],
 ): Promise<RouteData[]> {
   const results: RouteData[] = [];
-  const batchSize = 3;
-  for (let i = 0; i < pairs.length; i += batchSize) {
-    const batch = pairs.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(async (pair) => {
-        const route = await fetchOSRMRoute(pair.from, pair.to);
-        if (route) return { id: pair.id, coordinates: route.coordinates, color: pair.color, distance: route.distance, duration: route.duration } as RouteData;
-        return { id: pair.id, coordinates: [pair.from, pair.to], color: pair.color, distance: 0, duration: 0 } as RouteData;
-      })
-    );
-    results.push(...batchResults);
-    if (i + batchSize < pairs.length) {
-      await new Promise((r) => setTimeout(r, 200));
+  const failed: typeof pairs = [];
+
+  // Process one at a time with delay to avoid rate limiting
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    const route = await fetchOSRMRoute(pair.from, pair.to);
+    if (route) {
+      results.push({ id: pair.id, coordinates: route.coordinates, color: pair.color, distance: route.distance, duration: route.duration });
+    } else {
+      failed.push(pair);
+    }
+    if (i < pairs.length - 1) {
+      await new Promise((r) => setTimeout(r, 300));
     }
   }
+
+  // Retry failed routes after a longer pause
+  if (failed.length > 0) {
+    await new Promise((r) => setTimeout(r, 2000));
+    for (let i = 0; i < failed.length; i++) {
+      const pair = failed[i];
+      const route = await fetchOSRMRoute(pair.from, pair.to);
+      if (route) {
+        results.push({ id: pair.id, coordinates: route.coordinates, color: pair.color, distance: route.distance, duration: route.duration });
+      } else {
+        // Final fallback: straight line
+        results.push({ id: pair.id, coordinates: [pair.from, pair.to], color: pair.color, distance: 0, duration: 0 });
+      }
+      if (i < failed.length - 1) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+  }
+
   return results;
 }
 
