@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/bestLvivHackathon2026/sw.js', { scope: '/bestLvivHackathon2026/' })})}
