@@ -20,7 +20,7 @@ export default function AdminSuppliesPage() {
       header: 'Розподіл по складах',
       render: (s) => (
         <div className="space-y-0.5">
-          {s.distribution.map((d) => (
+          {(s.distribution ?? []).map((d) => (
             <div key={d.warehouseId} className="flex items-center gap-2 text-xs">
               <span className="text-gray-700 dark:text-gray-300">{d.warehouseName}</span>
               <span className="font-medium text-indigo-600 dark:text-indigo-400">×{d.quantity}</span>
