@@ -1,11 +1,12 @@
-const colorMap: Record<string, string> = {
-  available: 'bg-green-100 text-green-800',
-  on_route: 'bg-blue-100 text-blue-800',
-  inactive: 'bg-gray-100 text-gray-600',
-  pending: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-indigo-100 text-indigo-800',
-  in_transit: 'bg-blue-100 text-blue-800',
-  delivered: 'bg-green-100 text-green-800',
+const colorMap: Record<string, { bg: string; label: string }> = {
+  available: { bg: 'bg-green-100 text-green-800', label: 'Доступний' },
+  on_route: { bg: 'bg-blue-100 text-blue-800', label: 'В дорозі' },
+  inactive: { bg: 'bg-gray-100 text-gray-600', label: 'Неактивний' },
+  pending: { bg: 'bg-yellow-100 text-yellow-800', label: 'Очікує' },
+  approved: { bg: 'bg-indigo-100 text-indigo-800', label: 'Підтверджено' },
+  in_transit: { bg: 'bg-blue-100 text-blue-800', label: 'В дорозі' },
+  delivered: { bg: 'bg-green-100 text-green-800', label: 'Доставлено' },
+  rejected: { bg: 'bg-red-100 text-red-800', label: 'Відхилено' },
 };
 
 interface StatusBadgeProps {
@@ -13,11 +14,12 @@ interface StatusBadgeProps {
 }
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
-  const colors = colorMap[status] ?? 'bg-gray-100 text-gray-800';
-  const label = status.replace(/_/g, ' ');
+  const config = colorMap[status];
+  const colors = config?.bg ?? 'bg-gray-100 text-gray-800';
+  const label = config?.label ?? status.replace(/_/g, ' ');
 
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colors}`}>
+    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}>
       {label}
     </span>
   );
