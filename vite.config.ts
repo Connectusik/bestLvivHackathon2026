@@ -27,7 +27,7 @@ export default defineConfig({
         name: 'Warehouse Logistics',
         short_name: 'WH Logistics',
         description: 'Система управління складською логістикою',
-        theme_color: '#4f46e5',
+        theme_color: '#3191a5',
         background_color: '#f9fafb',
         display: 'standalone',
         start_url: '/bestLvivHackathon2026/',

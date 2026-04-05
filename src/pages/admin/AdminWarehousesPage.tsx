@@ -10,8 +10,8 @@ import {
 type ChartType = 'bar' | 'line' | 'area';
 
 const PRODUCT_COLORS: Record<string, string> = {
-  'P001': '#6366f1', 'P002': '#f59e0b', 'P003': '#10b981',
-  'P004': '#ef4444', 'P005': '#8b5cf6', 'P006': '#06b6d4',
+  'P001': '#3191a5', 'P002': '#f1a92e', 'P003': '#10b981',
+  'P004': '#ef4444', 'P005': '#5bc5d9', 'P006': '#06b6d4',
 };
 
 function generateWeeklyData(productNumber: string, warehouses: { id: string; name: string; products: { productNumber: string; quantity: number }[] }[]) {
@@ -111,7 +111,7 @@ export default function AdminWarehousesPage() {
   const selectedProductName = allProducts.find((p) => p.productNumber === selectedProduct)?.name ?? '';
 
   const renderChart = () => {
-    const colors = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6'];
+    const colors = ['#3191a5', '#f1a92e', '#10b981', '#ef4444', '#5bc5d9'];
     const lines = warehousesForChart.map((wh, idx) => {
       const color = colors[idx % colors.length];
       if (chartType === 'bar') return <Bar key={wh.id} dataKey={wh.name} fill={color} radius={[4, 4, 0, 0]} />;

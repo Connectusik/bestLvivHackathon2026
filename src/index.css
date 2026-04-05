@@ -3,6 +3,73 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* Primary: Orange (accent color) */
+  --color-indigo-50: #fff7ed;
+  --color-indigo-100: #ffedd5;
+  --color-indigo-200: #fed7aa;
+  --color-indigo-300: #fdba74;
+  --color-indigo-400: #fb923c;
+  --color-indigo-500: #f97316;
+  --color-indigo-600: #ea580c;
+  --color-indigo-700: #c2410c;
+  --color-indigo-800: #9a3412;
+  --color-indigo-900: #7c2d12;
+  --color-indigo-950: #431407;
+
+  --color-violet-50: #fff7ed;
+  --color-violet-100: #ffedd5;
+  --color-violet-200: #fed7aa;
+  --color-violet-300: #fdba74;
+  --color-violet-400: #fb923c;
+  --color-violet-500: #f97316;
+  --color-violet-600: #ea580c;
+  --color-violet-700: #c2410c;
+  --color-violet-800: #9a3412;
+  --color-violet-900: #7c2d12;
+  --color-violet-950: #431407;
+
+  /* Secondary: Cyan/Blue (auxiliary color) */
+  --color-amber-50: #f0f9fb;
+  --color-amber-100: #d9f0f5;
+  --color-amber-200: #b7e3ee;
+  --color-amber-300: #8ad9e9;
+  --color-amber-400: #5bc5d9;
+  --color-amber-500: #3dafc5;
+  --color-amber-600: #3191a5;
+  --color-amber-700: #2d7688;
+  --color-amber-800: #2c6170;
+  --color-amber-900: #29515e;
+  --color-amber-950: #17353f;
+
+  --color-orange-50: #f0f9fb;
+  --color-orange-100: #d9f0f5;
+  --color-orange-200: #b7e3ee;
+  --color-orange-300: #8ad9e9;
+  --color-orange-400: #5bc5d9;
+  --color-orange-500: #3dafc5;
+  --color-orange-600: #3191a5;
+  --color-orange-700: #2d7688;
+  --color-orange-800: #2c6170;
+  --color-orange-900: #29515e;
+  --color-orange-950: #17353f;
+
+  /* Dark blue: #1f324b (replaces dark grays for sidebar & dark mode) */
+  --color-gray-700: #2a4160;
+  --color-gray-800: #1f324b;
+  --color-gray-900: #162539;
+  --color-gray-950: #0f1a28;
+
+  /* Shadows: #e1e8eb */
+  --shadow: 0 1px 3px 0 #e1e8eb, 0 1px 2px -1px #e1e8eb;
+  --shadow-xs: 0 1px 2px 0 #e1e8eb;
+  --shadow-sm: 0 1px 3px 0 #e1e8eb, 0 1px 2px -1px #e1e8eb;
+  --shadow-md: 0 4px 6px -1px #e1e8eb, 0 2px 4px -2px #e1e8eb;
+  --shadow-lg: 0 10px 15px -3px #e1e8eb, 0 4px 6px -4px #e1e8eb;
+  --shadow-xl: 0 20px 25px -5px #e1e8eb, 0 8px 10px -6px #e1e8eb;
+  --shadow-2xl: 0 25px 50px -12px #e1e8eb;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, sans-serif;

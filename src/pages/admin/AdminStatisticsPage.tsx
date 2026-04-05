@@ -6,7 +6,7 @@ import {
   PieChart, Pie, Cell, Legend, AreaChart, Area,
 } from 'recharts';
 
-const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+const COLORS = ['#3191a5', '#22c55e', '#f1a92e', '#ef4444', '#5bc5d9', '#06b6d4'];
 const PRIORITY_COLORS: Record<Priority, string> = {
   normal: '#22c55e',
   elevated: '#eab308',
@@ -131,7 +131,7 @@ export default function AdminStatisticsPage() {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="stock" name="Запас" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="stock" name="Запас" fill="#3191a5" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -143,7 +143,7 @@ export default function AdminStatisticsPage() {
               <XAxis dataKey="product" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="demand" name="Попит (од.)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="demand" name="Попит (од.)" fill="#f1a92e" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -158,7 +158,7 @@ export default function AdminStatisticsPage() {
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip />
               <Legend />
-              <Area type="monotone" dataKey="requests" name="Всього заявок" stroke="#6366f1" fill="#6366f1" fillOpacity={0.15} />
+              <Area type="monotone" dataKey="requests" name="Всього заявок" stroke="#3191a5" fill="#3191a5" fillOpacity={0.15} />
               <Area type="monotone" dataKey="delivered" name="Доставлено" stroke="#22c55e" fill="#22c55e" fillOpacity={0.15} />
             </AreaChart>
           </ResponsiveContainer>
