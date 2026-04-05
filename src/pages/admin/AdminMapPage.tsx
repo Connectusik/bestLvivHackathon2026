@@ -5,7 +5,7 @@ import MapPointDetails from '../../components/map/MapPointDetails';
 import PriorityBadge from '../../components/shared/PriorityBadge';
 import StatusBadge from '../../components/shared/StatusBadge';
 import { useState, useEffect, useMemo } from 'react';
-import { GREEN_ZONE_RADIUS, YELLOW_ZONE_RADIUS, getWarehouseZones, getZoneLabel, getZoneColor, getDeliveryZone, haversineDistance } from '../../utils/distribution';
+import { GREEN_ZONE_RADIUS, YELLOW_ZONE_RADIUS, getWarehouseZones, getZoneLabel, getZoneColor } from '../../utils/distribution';
 import type { DeliveryRequest, DeliveryZone } from '../../types';
 import { productCatalog } from '../../data/mockData';
 

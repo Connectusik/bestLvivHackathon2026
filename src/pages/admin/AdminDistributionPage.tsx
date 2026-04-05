@@ -4,7 +4,7 @@ import { calculateDemandForecast, calculateRebalancingPlan, calculateSmartSupply
 import { forecastDemand } from '../../utils/forecasting';
 import { optimizeAllRoutes } from '../../utils/routeOptimizer';
 import PriorityBadge from '../../components/shared/PriorityBadge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, LineChart, Line, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, Line, Area, AreaChart } from 'recharts';
 import { productCatalog } from '../../data/mockData';
 
 function TrendArrow({ factor }: { factor: number }) {
@@ -14,8 +14,6 @@ function TrendArrow({ factor }: { factor: number }) {
   if (factor < 1.0) return <span className="text-blue-500" title={`Тренд: x${factor}`}>↓</span>;
   return <span className="text-gray-400" title="Тренд: стабільний">→</span>;
 }
-
-const DAY_LABELS = ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 export default function AdminDistributionPage() {
   const { requests, warehouses } = useApp();

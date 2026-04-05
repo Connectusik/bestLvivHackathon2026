@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import type { Priority, AdvancedDistributionPlan, DeliveryZone } from '../../types';
+import type { Priority, DeliveryZone } from '../../types';
 import DataTable from '../../components/shared/DataTable';
 import type { Column } from '../../components/shared/DataTable';
 import StatusBadge from '../../components/shared/StatusBadge';
