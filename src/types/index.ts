@@ -50,15 +50,18 @@ export interface Truck {
   capacity?: number;
 }
 
-export type SupplyStatus = 'pending' | 'in_transit' | 'delivered';
+export interface SupplyDistributionEntry {
+  warehouseId: string;
+  warehouseName: string;
+  quantity: number;
+}
 
 export interface Supply {
   id: string;
   productNumber: string;
   quantity: number;
-  destinationWarehouseId: string;
+  distribution: SupplyDistributionEntry[];
   createdAt: string;
-  status: SupplyStatus;
 }
 
 export interface Shipment {
@@ -69,7 +72,6 @@ export interface Shipment {
   destinationWarehouseId?: string;
   destinationLabel: string;
   createdAt: string;
-  status: 'pending' | 'in_transit' | 'delivered';
 }
 
 export interface DistributionPlan {

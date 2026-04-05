@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, type ReactNode } from 'react';
-import type { DeliveryRequest, Truck, Supply, Shipment, Warehouse } from '../types';
+import type { DeliveryRequest, Truck, Supply, Shipment, Warehouse, SupplyDistributionEntry } from '../types';
 import {
   warehouses as initialWarehouses,
   deliveryRequests as initialRequests,
@@ -9,6 +9,7 @@ import {
 } from '../data/mockData';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useNotifications } from './NotificationContext';
+import { calculateSmartSupplyDistribution } from '../utils/distribution';
 
 interface AppContextValue {
   warehouses: Warehouse[];
@@ -32,7 +33,7 @@ interface AppContextValue {
   deleteTruck: (id: string) => void;
 
   // Supply mutations
-  addSupply: (data: { productNumber: string; quantity: number; destinationWarehouseId?: string }) => void;
+  addSupply: (data: { productNumber: string; quantity: number }) => void;
 
   // Warehouse mutations
   addWarehouse: (data: Omit<Warehouse, 'id'>) => void;
@@ -108,18 +109,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addNotification('warning', `Транспорт ${id} видалено`);
   }, [setTrucks, addNotification]);
 
-  const addSupply = useCallback((data: { productNumber: string; quantity: number; destinationWarehouseId?: string }) => {
+  const addSupply = useCallback((data: { productNumber: string; quantity: number }) => {
+    // Calculate smart distribution across warehouses based on demand
+    const analysis = calculateSmartSupplyDistribution(requests, warehouses);
+    const productAnalysis = analysis.find((a) => a.productNumber === data.productNumber);
+
+    let distribution: SupplyDistributionEntry[] = [];
+    let remaining = data.quantity;
+
+    if (productAnalysis && productAnalysis.warehouseBreakdown.length > 0) {
+      // Distribute proportionally based on urgencyScore and recommendedQuantity
+      const breakdown = productAnalysis.warehouseBreakdown
+        .filter((wb) => wb.recommendedQuantity > 0 || wb.urgencyScore > 0)
+        .sort((a, b) => b.urgencyScore - a.urgencyScore);
+
+      if (breakdown.length > 0) {
+        const totalRecommended = breakdown.reduce((s, wb) => s + Math.max(wb.recommendedQuantity, 1), 0);
+
+        for (const wb of breakdown) {
+          if (remaining <= 0) break;
+          const share = Math.ceil((Math.max(wb.recommendedQuantity, 1) / totalRecommended) * data.quantity);
+          const qty = Math.min(share, remaining);
+          if (qty > 0) {
+            distribution.push({ warehouseId: wb.warehouseId, warehouseName: wb.warehouseName, quantity: qty });
+            remaining -= qty;
+          }
+        }
+      }
+    }
+
+    // If no smart distribution or remaining qty, spread evenly across all warehouses
+    if (distribution.length === 0) {
+      const perWarehouse = Math.floor(data.quantity / warehouses.length);
+      let leftover = data.quantity - perWarehouse * warehouses.length;
+      distribution = warehouses.map((wh) => {
+        const qty = perWarehouse + (leftover > 0 ? 1 : 0);
+        if (leftover > 0) leftover--;
+        return { warehouseId: wh.id, warehouseName: wh.name, quantity: qty };
+      }).filter((d) => d.quantity > 0);
+    }
+
     const newSupply: Supply = {
       id: `S-${String(Date.now()).slice(-4)}`,
       productNumber: data.productNumber,
       quantity: data.quantity,
-      destinationWarehouseId: data.destinationWarehouseId ?? 'wh-main',
+      distribution,
       createdAt: new Date().toISOString(),
-      status: 'pending',
     };
+
     setSupplies((prev) => [newSupply, ...prev]);
-    addNotification('info', `Нове постачання ${newSupply.id}: ${data.productNumber} x${data.quantity}`);
-  }, [setSupplies, addNotification]);
+
+    // Immediately update warehouse stock
+    setWarehouses((prev) => prev.map((wh) => {
+      const entry = distribution.find((d) => d.warehouseId === wh.id);
+      if (!entry) return wh;
+      const hasProduct = wh.products.some((p) => p.productNumber === data.productNumber);
+      return {
+        ...wh,
+        products: hasProduct
+          ? wh.products.map((p) =>
+              p.productNumber === data.productNumber
+                ? { ...p, quantity: p.quantity + entry.quantity }
+                : p
+            )
+          : [...wh.products, { productNumber: data.productNumber, name: data.productNumber, quantity: entry.quantity }],
+      };
+    }));
+
+    const summary = distribution.map((d) => `${d.warehouseName}: ${d.quantity}`).join(', ');
+    addNotification('success', `Постачання ${newSupply.id} розподілено: ${summary}`);
+  }, [setSupplies, setWarehouses, addNotification, requests, warehouses]);
 
   const addWarehouse = useCallback((data: Omit<Warehouse, 'id'>) => {
     const newWarehouse: Warehouse = { ...data, id: `wh-${String(Date.now()).slice(-6)}` };

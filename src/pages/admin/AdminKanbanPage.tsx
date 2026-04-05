@@ -88,11 +88,11 @@ function KanbanColumn({ column, requests }: {
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col rounded-xl border ${column.borderColor} ${column.bgColor} ${
+      className={`flex flex-col rounded-xl ${column.bgColor} ${
         isOver ? 'ring-2 ring-indigo-400 ring-offset-2' : ''
-      } transition-all min-h-0`}
+      } transition-all min-h-0 overflow-hidden`}
     >
-      <div className={`px-4 py-3 border-b ${column.borderColor}`}>
+      <div className="px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h3 className={`text-sm font-semibold ${column.color}`}>{column.label}</h3>
           <span className={`text-xs font-bold ${column.color} bg-white/60 px-2 py-0.5 rounded-full`}>
@@ -100,7 +100,7 @@ function KanbanColumn({ column, requests }: {
           </span>
         </div>
       </div>
-      <div className="flex-1 p-3 space-y-2 overflow-y-auto min-h-[100px]">
+      <div className="flex-1 px-3 pb-3 space-y-2 overflow-y-auto">
         <SortableContext items={requests.map((r) => r.id)} strategy={verticalListSortingStrategy}>
           {requests.map((request) => (
             <SortableCard key={request.id} request={request} />
@@ -218,7 +218,7 @@ export default function AdminKanbanPage() {
   const urgentPending = nonRejected.filter((r) => r.status === 'pending' && r.priority === 'urgent').length;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 160px)' }}>
       <div className="mb-4">
         <div className="flex items-center justify-between">
           <div>
@@ -262,7 +262,7 @@ export default function AdminKanbanPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-4 gap-4 flex-1 min-h-0" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+        <div className="grid grid-cols-4 gap-4 flex-1 min-h-0 overflow-hidden">
           {columns.map((col) => (
             <KanbanColumn key={col.id} column={col} requests={col.requests} />
           ))}
@@ -273,7 +273,7 @@ export default function AdminKanbanPage() {
         </DragOverlay>
       </DndContext>
 
-      <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+      <div className="mt-2 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
         <p className="text-xs text-gray-500 dark:text-gray-400">
           <span className="font-medium text-gray-700 dark:text-gray-300">Правила переміщення:</span>{' '}
           {statusLabels.pending} → {statusLabels.approved} → {statusLabels.in_transit} → {statusLabels.delivered}.

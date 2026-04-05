@@ -326,19 +326,52 @@ export const trucks: Truck[] = [
 ];
 
 export const supplies: Supply[] = [
-  { id: 'S-001', productNumber: 'P001', quantity: 200, destinationWarehouseId: 'wh-main', createdAt: '2026-03-28T08:00:00Z', status: 'delivered' },
-  { id: 'S-002', productNumber: 'P002', quantity: 500, destinationWarehouseId: 'wh-main', createdAt: '2026-03-30T10:00:00Z', status: 'in_transit' },
-  { id: 'S-003', productNumber: 'P003', quantity: 100, destinationWarehouseId: 'wh-main', createdAt: '2026-04-01T12:00:00Z', status: 'pending' },
-  { id: 'S-004', productNumber: 'P004', quantity: 300, destinationWarehouseId: 'wh-lviv', createdAt: '2026-04-02T09:00:00Z', status: 'in_transit' },
-  { id: 'S-005', productNumber: 'P006', quantity: 800, destinationWarehouseId: 'wh-main', createdAt: '2026-04-03T14:00:00Z', status: 'pending' },
-  { id: 'S-006', productNumber: 'P005', quantity: 150, destinationWarehouseId: 'wh-dnipro', createdAt: '2026-04-04T07:00:00Z', status: 'pending' },
+  { id: 'S-001', productNumber: 'P001', quantity: 200, createdAt: '2026-03-28T08:00:00Z', distribution: [
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 50 },
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 50 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 40 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 30 },
+    { warehouseId: 'wh-main', warehouseName: 'Центральний склад Київ', quantity: 30 },
+  ] },
+  { id: 'S-002', productNumber: 'P002', quantity: 500, createdAt: '2026-03-30T10:00:00Z', distribution: [
+    { warehouseId: 'wh-main', warehouseName: 'Центральний склад Київ', quantity: 150 },
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 100 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 100 },
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 80 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 70 },
+  ] },
+  { id: 'S-003', productNumber: 'P003', quantity: 100, createdAt: '2026-04-01T12:00:00Z', distribution: [
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 35 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 30 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 20 },
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 15 },
+  ] },
+  { id: 'S-004', productNumber: 'P004', quantity: 300, createdAt: '2026-04-02T09:00:00Z', distribution: [
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 90 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 80 },
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 70 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 60 },
+  ] },
+  { id: 'S-005', productNumber: 'P006', quantity: 800, createdAt: '2026-04-03T14:00:00Z', distribution: [
+    { warehouseId: 'wh-main', warehouseName: 'Центральний склад Київ', quantity: 200 },
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 180 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 160 },
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 140 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 120 },
+  ] },
+  { id: 'S-006', productNumber: 'P005', quantity: 150, createdAt: '2026-04-04T07:00:00Z', distribution: [
+    { warehouseId: 'wh-lviv', warehouseName: 'Склад Львів', quantity: 50 },
+    { warehouseId: 'wh-dnipro', warehouseName: 'Склад Дніпро', quantity: 40 },
+    { warehouseId: 'wh-odesa', warehouseName: 'Склад Одеса', quantity: 35 },
+    { warehouseId: 'wh-kharkiv', warehouseName: 'Склад Харків', quantity: 25 },
+  ] },
 ];
 
 export const shipments: Shipment[] = [
-  { id: 'SH-001', productNumber: 'P001', quantity: 50, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Львів', createdAt: '2026-03-28T14:00:00Z', status: 'delivered' },
-  { id: 'SH-002', productNumber: 'P002', quantity: 100, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Харків', createdAt: '2026-03-30T16:00:00Z', status: 'in_transit' },
-  { id: 'SH-003', productNumber: 'P004', quantity: 80, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Дніпро', createdAt: '2026-04-01T09:00:00Z', status: 'pending' },
-  { id: 'SH-004', productNumber: 'P003', quantity: 30, sourceWarehouseId: 'wh-lviv', destinationLabel: 'Склад Одеса', createdAt: '2026-04-02T11:00:00Z', status: 'pending' },
-  { id: 'SH-005', productNumber: 'P006', quantity: 200, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Львів', createdAt: '2026-04-03T08:00:00Z', status: 'in_transit' },
-  { id: 'SH-006', productNumber: 'P005', quantity: 60, sourceWarehouseId: 'wh-dnipro', destinationLabel: 'Склад Одеса', createdAt: '2026-04-04T10:00:00Z', status: 'pending' },
+  { id: 'SH-001', productNumber: 'P001', quantity: 50, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Львів', createdAt: '2026-03-28T14:00:00Z' },
+  { id: 'SH-002', productNumber: 'P002', quantity: 100, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Харків', createdAt: '2026-03-30T16:00:00Z' },
+  { id: 'SH-003', productNumber: 'P004', quantity: 80, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Дніпро', createdAt: '2026-04-01T09:00:00Z' },
+  { id: 'SH-004', productNumber: 'P003', quantity: 30, sourceWarehouseId: 'wh-lviv', destinationLabel: 'Склад Одеса', createdAt: '2026-04-02T11:00:00Z' },
+  { id: 'SH-005', productNumber: 'P006', quantity: 200, sourceWarehouseId: 'wh-main', destinationLabel: 'Склад Львів', createdAt: '2026-04-03T08:00:00Z' },
+  { id: 'SH-006', productNumber: 'P005', quantity: 60, sourceWarehouseId: 'wh-dnipro', destinationLabel: 'Склад Одеса', createdAt: '2026-04-04T10:00:00Z' },
 ];

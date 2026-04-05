@@ -68,10 +68,10 @@ export default function SupplyForm({ onSubmit }: SupplyFormProps) {
           placeholder="Введіть кількість" className={inputClass('quantity')} />
         {errors.quantity && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{errors.quantity}</p>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Призначення</label>
-        <input type="text" readOnly value="Центральний склад Київ"
-          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400" />
+      <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">
+        <p className="text-xs text-indigo-700 dark:text-indigo-300">
+          Товар буде автоматично розподілено по складах згідно з поточним попитом та потребами кожного регіону.
+        </p>
       </div>
       <button type="submit"
         className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
